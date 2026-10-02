@@ -1,0 +1,56 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    command: >
+      postgres
+      -c max_connections=500
+      -c shared_buffers=512MB
+      -c effective_cache_size=1GB
+      -c maintenance_work_mem=256MB
+      -c work_mem=16MB
+      -c wal_buffers=16MB
+      -c checkpoint_completion_target=0.9
+      -c max_wal_size=4GB
+      -c min_wal_size=1GB
+      -c random_page_cost=1.1
+      -c default_statistics_target=200
+      -c autovacuum=on
+      -c autovacuum_max_workers=8
+      -c autovacuum_naptime=15s
+      -c autovacuum_vacuum_scale_factor=0.02
+      -c autovacuum_analyze_scale_factor=0.01
+      -c temp_file_limit=2GB
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-guestbook}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-guestbook}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-guestbook} -d ${POSTGRES_DB:-guestbook}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # Not exposed to the host on purpose: only the app container talks to it.
+    expose:
+      - "5432"
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-guestbook}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-guestbook}?schema=public
+      ADMIN_PASSCODE: ${ADMIN_PASSCODE}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      APP_URL: ${APP_URL}
+    ports:
+      - "4001:4000"
+
+volumes:
+  db_data:

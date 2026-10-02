@@ -1,0 +1,44 @@
+<svg width="1200" height="800" viewBox="0 0 1200 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg1" x1="120" y1="70" x2="1040" y2="720" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF7E6"/>
+      <stop offset="0.28" stop-color="#FCD34D"/>
+      <stop offset="0.6" stop-color="#B45309"/>
+      <stop offset="1" stop-color="#1C1917"/>
+    </linearGradient>
+    <linearGradient id="frame" x1="300" y1="120" x2="900" y2="680" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FDE68A"/>
+      <stop offset="1" stop-color="#B45309"/>
+    </linearGradient>
+    <linearGradient id="shirt" x1="430" y1="420" x2="750" y2="700" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F5F5F4"/>
+      <stop offset="1" stop-color="#E7E5E4"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="800" rx="48" fill="url(#bg1)"/>
+  <circle cx="600" cy="370" r="280" fill="rgba(255,255,255,0.12)"/>
+  <circle cx="600" cy="370" r="240" fill="rgba(255,255,255,0.08)"/>
+
+  <g>
+    <rect x="330" y="120" width="540" height="540" rx="44" fill="rgba(28,25,23,0.18)" stroke="url(#frame)" stroke-width="12"/>
+    <rect x="370" y="165" width="460" height="450" rx="28" fill="rgba(120,53,15,0.08)"/>
+
+    <circle cx="600" cy="305" r="118" fill="#F6D3B1"/>
+    <path d="M500 280C500 235 541 198 590 198H610C660 198 700 235 700 280V305C700 365 655 413 600 413C545 413 500 365 500 305V280Z" fill="#1F2937"/>
+    <path d="M470 470C500 420 550 390 600 390C650 390 700 420 730 470L760 620H440L470 470Z" fill="url(#shirt)"/>
+    <path d="M520 520L492 620H440L470 470L520 520Z" fill="#D6D3D1"/>
+    <path d="M680 520L708 620H760L730 470L680 520Z" fill="#D6D3D1"/>
+    <circle cx="560" cy="310" r="9" fill="#1C1917"/>
+    <circle cx="640" cy="310" r="9" fill="#1C1917"/>
+    <path d="M574 335C591 349 609 349 626 335" stroke="#8B4513" stroke-width="7" stroke-linecap="round"/>
+    <path d="M530 270C550 250 570 240 600 240C630 240 650 250 670 270" stroke="#B45309" stroke-width="10" stroke-linecap="round" opacity="0.8"/>
+  </g>
+
+  <g opacity="0.9">
+    <path d="M200 650C320 605 370 605 470 640" stroke="#FDE68A" stroke-width="10" stroke-linecap="round"/>
+    <path d="M730 640C830 605 880 605 1000 650" stroke="#FDE68A" stroke-width="10" stroke-linecap="round"/>
+  </g>
+
+  <text x="600" y="690" text-anchor="middle" fill="#FFF7ED" font-family="Georgia, 'Times New Roman', serif" font-size="58" font-weight="700" letter-spacing="2">Jean-Michel</text>
+</svg>

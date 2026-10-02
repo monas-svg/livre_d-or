@@ -1,0 +1,8 @@
+{
+  "name": "Livre d'Or du feu Sultan Ibrahim Mbombo Njoya",
+  "description": "Livre d'or et espace d'hommage numérique au feu Sultan Ibrahim Mbombo Njoya, roi des Bamoun, avec gestion des témoignages et galerie photos pour l'administrateur.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

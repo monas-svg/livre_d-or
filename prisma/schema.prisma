@@ -1,0 +1,47 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model GuestEntry {
+  id           String   @id @default(cuid())
+  token        String   @unique
+  firstName    String   @db.VarChar(100)
+  lastName     String   @db.VarChar(100)
+  email        String?  @db.VarChar(320)
+  relationship String   @default("Collègue") @db.VarChar(120)
+  yearsKnown   String?  @db.VarChar(80)
+  message      String   @db.Text
+  anecdote     String?  @db.Text
+  wish         String?  @db.Text
+  photoUrl     String?  @db.Text
+  photoCaption String?  @db.Text
+  photos       Json?
+  cardStyle    String   @default("polaroid") @db.VarChar(60)
+  createdAt    DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @db.Timestamptz(6)
+  likesCount   Int      @default(0)
+  isPinned     Boolean  @default(false)
+  isApproved   Boolean  @default(true)
+  reactions    Json
+
+  @@index([createdAt])
+  @@index([isApproved, createdAt])
+  @@index([isPinned, createdAt])
+  @@index([relationship])
+  @@index([updatedAt])
+  @@map("guest_entries")
+}
+
+model AdminSession {
+  token     String   @id
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  @@map("admin_sessions")
+}
