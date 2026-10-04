@@ -15,7 +15,7 @@ if (process.env.TRUST_PROXY) app.set('trust proxy', Number(process.env.TRUST_PRO
 app.use(helmet({ contentSecurityPolicy: false }));
 
 const ADMIN_PASSCODE = process.env.ADMIN_PASSCODE ?? '';
-const ADMIN_SESSION_TTL_MS = 12 * 60 * 60 * 1000; // 12h
+const ADMIN_SESSION_TTL_MS = 365 * 24 * 60 * 60 * 1000; // 1 an
 
 if (!ADMIN_PASSCODE) {
   // Fail fast: never ship a hardcoded fallback passcode.
