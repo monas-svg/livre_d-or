@@ -42,7 +42,7 @@ export default function App() {
       localStorage.setItem('jean_michel_guest_token', activeToken);
     }
 
-    const savedAdminToken = sessionStorage.getItem('jean_michel_admin_token');
+    const savedAdminToken = localStorage.getItem('jean_michel_admin_token');
     if (savedAdminToken) {
       setAdminToken(savedAdminToken);
     }
@@ -213,7 +213,7 @@ export default function App() {
       if (res.ok) {
         const data = await res.json();
         setAdminToken(data.token);
-        sessionStorage.setItem('jean_michel_admin_token', data.token);
+        localStorage.setItem('jean_michel_admin_token', data.token);
         fetchAdminData(data.token);
         return true;
       }
@@ -225,7 +225,7 @@ export default function App() {
 
   const handleAdminLogout = () => {
     setAdminToken(null);
-    sessionStorage.removeItem('jean_michel_admin_token');
+    localStorage.removeItem('jean_michel_admin_token');
     setAdminEntries([]);
   };
 
