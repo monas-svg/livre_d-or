@@ -74,54 +74,97 @@ export const PdfBookModal: React.FC<PdfBookModalProps> = ({ isOpen, onClose, ent
   const totalBookPages = 2 + bookEntries.length + (totalPhotosCount > 0 ? 1 : 0);
 
   // Guaranteed High-Definition Vector PDF Generation via jsPDF Native Engine
+  // Generation par tomes : chaque tome charge ses temoignages par lots, puis produit son propre PDF
   const handleDownloadPdf = async () => {
     setIsGeneratingPdf(true);
-    setGenerationProgress(10);
-    setGenerationStatus('Initialisation du Livre d’Or Haute Définition...');
+    setGenerationProgress(2);
+    setGenerationStatus('Préparation du livre...');
+
+    const BATCH = 50; // temoignages par requete (le serveur accepte jusqu'a 200)
+    const TOME = 150; // temoignages par tome (environ 153 pages)
+    const adminToken = localStorage.getItem('jean_michel_admin_token');
 
     try {
-      const pdfBlob = await generateGoldenBookPdf(entries, {
-        theme: coverTheme,
-        bookTitle: bookTitle,
-        recipientName: recipientName,
-        dedicationSubtitle: dedicationSubtitle,
-        eventDate: eventDate,
-        includePhotos: true,
-        onProgress: (progress, status) => {
-          setGenerationProgress(progress);
-          setGenerationStatus(status);
-        },
-      });
+      if (!adminToken) throw new Error('Session administrateur introuvable : reconnectez-vous.');
+      const authHeaders = { Authorization: `Bearer ${adminToken}` };
 
-      const cleanName = recipientName.replace(/[^a-zA-Z0-9]/g, '_');
-      const fileName = `Livre_d_Or_${cleanName}_2026.pdf`;
+      const fetchBatch = async (page: number): Promise<{ items: GuestEntry[]; total: number }> => {
+        const res = await fetch(`/api/admin/entries?book=1&page=${page}&limit=${BATCH}`, { headers: authHeaders });
+        if (!res.ok) throw new Error(`Chargement des témoignages impossible (HTTP ${res.status})`);
+        const payload = await res.json();
+        return {
+          items: Array.isArray(payload?.items) ? payload.items : [],
+          total: Number(payload?.total) || 0,
+        };
+      };
 
-      // Trigger standard blob download
-      const blobUrl = URL.createObjectURL(pdfBlob);
-      const downloadLink = document.createElement('a');
-      downloadLink.href = blobUrl;
-      downloadLink.download = fileName;
-      downloadLink.target = '_blank';
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
+      const first = await fetchBatch(1);
+      const total = first.total;
+      if (total === 0) throw new Error('Aucun témoignage approuvé à publier.');
+      const tomeCount = Math.ceil(total / TOME);
+      const batchesPerTome = TOME / BATCH;
 
-      setTimeout(() => {
-        if (document.body.contains(downloadLink)) {
-          document.body.removeChild(downloadLink);
+      for (let t = 0; t < tomeCount; t++) {
+        const tomeEntries: GuestEntry[] = [];
+        setGenerationProgress(Math.round((t / tomeCount) * 100));
+        setGenerationStatus(`Tome ${t + 1}/${tomeCount} : chargement des témoignages...`);
+        for (let b = 0; b < batchesPerTome; b++) {
+          const page = t * batchesPerTome + b + 1;
+          if ((page - 1) * BATCH >= total) break;
+          const batch = page === 1 ? first : await fetchBatch(page);
+          tomeEntries.push(...batch.items);
         }
-        URL.revokeObjectURL(blobUrl);
-      }, 4000);
+
+        const tomeLabel = tomeCount > 1 ? ` — TOME ${t + 1} / ${tomeCount}` : '';
+        const pdfBlob = await generateGoldenBookPdf(tomeEntries, {
+          theme: coverTheme,
+          bookTitle: bookTitle + tomeLabel,
+          recipientName: recipientName,
+          dedicationSubtitle: dedicationSubtitle,
+          eventDate: eventDate,
+          includePhotos: true,
+          onProgress: (progress, status) => {
+            setGenerationProgress(Math.round(((t + progress / 100) / tomeCount) * 100));
+            setGenerationStatus(`Tome ${t + 1}/${tomeCount} : ${status}`);
+          },
+        });
+
+        const cleanName = recipientName.replace(/[^a-zA-Z0-9]/g, '_');
+        const suffix = tomeCount > 1 ? `_Tome_${String(t + 1).padStart(2, '0')}_sur_${tomeCount}` : '';
+        const fileName = `Livre_d_Or_${cleanName}${suffix}_2026.pdf`;
+
+        const blobUrl = URL.createObjectURL(pdfBlob);
+        const downloadLink = document.createElement('a');
+        downloadLink.href = blobUrl;
+        downloadLink.download = fileName;
+        downloadLink.target = '_blank';
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        setTimeout(() => {
+          if (document.body.contains(downloadLink)) {
+            document.body.removeChild(downloadLink);
+          }
+          URL.revokeObjectURL(blobUrl);
+        }, 4000);
+
+        // Laisse le navigateur enregistrer le fichier avant de composer le tome suivant
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+      }
 
       setGenerationProgress(100);
-      setGenerationStatus('Livre d’Or téléchargé avec succès !');
+      setGenerationStatus(
+        tomeCount > 1
+          ? `Livre d’Or téléchargé en ${tomeCount} tomes (${total} témoignages).`
+          : 'Livre d’Or téléchargé avec succès !'
+      );
       setTimeout(() => {
         setIsGeneratingPdf(false);
-      }, 1200);
+      }, 1500);
     } catch (err) {
       console.error('Erreur génération PDF:', err);
-      alert('La boîte de dialogue d\'impression va s\'ouvrir afin que vous puissiez choisir "Enregistrer au format PDF" directement.');
+      const detail = err instanceof Error ? err.message : '';
+      alert(`La génération du PDF a échoué. ${detail}`.trim());
       setIsGeneratingPdf(false);
-      window.print();
     }
   };
 

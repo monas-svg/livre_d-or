@@ -404,9 +404,15 @@ app.get(
   requireAdmin,
   ah(async (req, res) => {
     const { page, limit, skip } = parsePagination(req);
+    // Mode livre (?book=1) : temoignages approuves, epingles d'abord puis par date croissante (ordre du PDF)
+    const book = req.query.book === '1';
+    const where = book ? { isApproved: true } : undefined;
+    const orderBy = book
+      ? [{ isPinned: 'desc' as const }, { createdAt: 'asc' as const }, { id: 'asc' as const }]
+      : [{ createdAt: 'desc' as const }];
     const [entries, total] = await Promise.all([
-      prisma.guestEntry.findMany({ orderBy: { createdAt: 'desc' }, skip, take: limit }),
-      prisma.guestEntry.count(),
+      prisma.guestEntry.findMany({ where, orderBy, skip, take: limit }),
+      prisma.guestEntry.count({ where }),
     ]);
     res.json({ items: entries, total, page, limit, totalPages: Math.ceil(total / limit) });
   })
